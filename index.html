@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Timer - Pomodoro Tracker</title>
+    <meta name="description" content="Beautiful Pomodoro timer with task tracking and statistics">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Urbanist', sans-serif;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        .min-h-screen {
+            min-height: 100vh;
+        }
+
+        .relative {
+            position: relative;
+        }
+
+        .absolute {
+            position: absolute;
+        }
+
+        .fixed {
+            position: fixed;
+        }
+
+        .inset-0 {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        .overflow-hidden {
+            overflow: hidden;
+        }
+
+        .bg-gradient {
+            background: linear-gradient(135deg, #F9D6E8 0%, #D8D6F9 100%);
+        }
+
+        #background {
+            transition: background-image 0.5s ease;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .z-10 {
+            z-index: 10;
+        }
+
+        .z-50 {
+            z-index: 50;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .gap-3 {
+            gap: 0.75rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .glass-strong {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-icon {
+            padding: 0.75rem;
+            border-radius: 9999px;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #d1d5db;
+            background: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            ring: 2px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .modal {
+            max-width: 48rem;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin: 2rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Font Classes */
+        .font-urbanist { font-family: 'Urbanist', sans-serif; }
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .font-roboto-mono { font-family: 'Roboto Mono', monospace; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-space-mono { font-family: 'Space Mono', monospace; }
+        .font-jetbrains { font-family: 'JetBrains Mono', monospace; }
+
+        /* Timer Display */
+        #timer-display {
+            font-size: 8rem;
+            font-weight: 800;
+            line-height: 1;
+            color: #000;
+        }
+
+        /* Progress Circle */
+        .progress-circle {
+            transform: rotate(-90deg);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Checkbox */
+        input[type="checkbox"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            cursor: pointer;
+            appearance: none;
+            border: 2px solid #d1d5db;
+            border-radius: 0.25rem;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        input[type="checkbox"]:checked {
+            background: black;
+            border-color: black;
+        }
+
+        input[type="checkbox"]:checked::before {
+            content: "✓";
+            display: block;
+            text-align: center;
+            color: white;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        /* Range slider */
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.1);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: black;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: black;
+            cursor: pointer;
+            border: none;
+        }
+
+        .grid {
+            display: grid;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .session-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 9999px;
+        }
+
+        .session-dot.active {
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .session-dot.inactive {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .task-item {
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .task-item.active {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .bg-preset {
+            aspect-ratio: 16/9;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 4px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .bg-preset.selected {
+            border-color: black;
+            transform: scale(0.95);
+        }
+
+        .bg-preset:hover {
+            border-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .bg-preset img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        .font-selector {
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid #d1d5db;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .font-selector.selected {
+            border-color: black;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .font-selector:hover {
+            border-color: rgba(0, 0, 0, 0.5);
+        }
+
+        kbd {
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            #timer-display {
+                font-size: 4rem;
+            }
+
+            .modal {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+
+            .btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 0.875rem;
+            }
+
+            .grid-cols-2,
+            .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .backdrop {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.2s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div id="background" class="absolute inset-0 bg-gradient"></div>
+
+    <!-- Main Content -->
+    <div class="relative z-10 min-h-screen flex flex-col items-center justify-center" style="padding: 2rem 1rem;">
+        
+        <!-- Top Bar -->
+        <div id="top-bar" class="absolute" style="top: 2rem; right: 2rem;">
+            <div class="flex gap-3">
+                <button id="focus-mode-btn" class="glass btn-icon" title="Focus Mode (F)">
+                    <i data-lucide="maximize-2" style="width: 20px; height: 20px; color: black;"></i>
+                </button>
+                <button id="stats-btn" class="glass btn-icon" title="Stats">
+                    <i data-lucide="bar-chart-3" style="width: 20px; height: 20px; color: black;"></i>
+                </button>
+                <button id="settings-btn" class="glass btn-icon" title="Settings">
+                    <i data-lucide="settings" style="width: 20px; height: 20px; color: black;"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Exit Focus Mode -->
+        <button id="exit-focus-btn" class="hidden absolute glass btn-icon" style="top: 1rem; right: 1rem;" title="Exit Focus Mode">
+            <i data-lucide="minimize-2" style="width: 20px; height: 20px; color: black;"></i>
+        </button>
+
+        <!-- Current Task Display -->
+        <div id="current-task-display" class="hidden absolute glass" style="top: 2rem; left: 2rem; padding: 0.5rem 1rem; border-radius: 9999px; max-width: 20rem;">
+            <div style="color: rgba(0, 0, 0, 0.8); font-size: 0.875rem; font-weight: 500;">
+                <i data-lucide="target" style="width: 14px; height: 14px; display: inline; margin-right: 0.5rem;"></i>
+                <span id="current-task-text"></span>
+            </div>
+        </div>
+
+        <!-- Session Progress Dots -->
+        <div id="session-dots" class="absolute flex gap-2" style="top: 6rem; left: 50%; transform: translateX(-50%);"></div>
+
+        <!-- Timer Display -->
+        <div class="text-center" style="margin-bottom: 3rem;">
+            <div style="margin-bottom: 1rem;">
+                <span id="timer-label" style="color: rgba(0, 0, 0, 0.6); font-size: 1.125rem; font-weight: 500;">Focus Time</span>
+            </div>
+            
+            <!-- Progress Circle -->
+            <div style="position: relative; display: inline-block; margin-bottom: 1rem;">
+                <svg width="160" height="160" viewBox="0 0 100 100" class="progress-circle">
+                    <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="4"/>
+                    <circle id="progress-circle" cx="50" cy="50" r="45" fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="4" stroke-linecap="round" stroke-dasharray="282.7" stroke-dashoffset="282.7" style="transition: stroke-dashoffset 1s linear;"/>
+                </svg>
+            </div>
+
+            <div id="timer-display" class="font-urbanist">25:00</div>
+
+            <!-- Live Session Counter -->
+            <div id="session-counter" class="hidden" style="margin-top: 1rem; color: rgba(0, 0, 0, 0.5); font-size: 0.875rem; font-weight: 500;">
+                <i data-lucide="clock" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem;"></i>
+                <span id="session-minutes">0</span> min focused
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex gap-4" style="margin-bottom: 1.5rem;">
+            <button id="start-pause-btn" class="glass btn">
+                <i id="play-icon" data-lucide="play" style="width: 24px; height: 24px; color: black;"></i>
+                <i id="pause-icon" data-lucide="pause" style="width: 24px; height: 24px; color: black; display: none;"></i>
+                <span id="start-pause-text" style="color: black;">Start</span>
+            </button>
+            <button id="reset-btn" class="glass btn-icon">
+                <i data-lucide="rotate-ccw" style="width: 24px; height: 24px; color: black;"></i>
+            </button>
+        </div>
+
+        <!-- Keyboard Hints -->
+        <div id="keyboard-hints" style="color: rgba(0, 0, 0, 0.4); font-size: 0.875rem; text-align: center;">
+            <kbd>Space</kbd> to start/pause • <kbd>R</kbd> to reset • <kbd>F</kbd> for focus mode
+        </div>
+
+        <!-- Active Tasks Widget -->
+        <div id="active-tasks-widget" class="hidden absolute glass" style="bottom: 2rem; left: 50%; transform: translateX(-50%); width: 90%; max-width: 28rem; padding: 1rem; border-radius: 1rem;">
+            <h3 style="color: rgba(0, 0, 0, 0.8); font-weight: 600; margin-bottom: 0.75rem; font-size: 0.875rem;">Active Tasks</h3>
+            <div id="active-tasks-list" style="max-height: 8rem; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center backdrop fade-in" style="padding: 1rem;">
+        <div class="modal glass-strong">
+            <div class="flex justify-between items-center" style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700; color: black;">Settings</h2>
+                <button id="close-settings" style="padding: 0.5rem; border-radius: 9999px; transition: background 0.2s;">
+                    <i data-lucide="x" style="width: 24px; height: 24px; color: black;"></i>
+                </button>
+            </div>
+
+            <!-- Timer Durations -->
+            <div class="grid grid-cols-2 gap-4" style="margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; color: black; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.875rem;">Focus Duration (min)</label>
+                    <input type="number" id="timer-duration" min="1" max="120" value="25">
+                </div>
+                <div>
+                    <label style="display: block; color: black; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.875rem;">Break Duration (min)</label>
+                    <input type="number" id="break-duration" min="1" max="60" value="5">
+                </div>
+                <div>
+                    <label style="display: block; color: black; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.875rem;">Long Break (min)</label>
+                    <input type="number" id="long-break-duration" min="1" max="60" value="15">
+                </div>
+                <div>
+                    <label style="display: block; color: black; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.875rem;">Sessions Until Long Break</label>
+                    <input type="number" id="sessions-until-long-break" min="1" max="10" value="4">
+                </div>
+            </div>
+
+            <!-- Auto-start Options -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer; margin-bottom: 0.75rem;">
+                    <input type="checkbox" id="auto-start-breaks">
+                    <span style="color: black; font-weight: 500; font-size: 0.875rem;">Auto-start breaks</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                    <input type="checkbox" id="auto-start-pomodoros">
+                    <span style="color: black; font-weight: 500; font-size: 0.875rem;">Auto-start pomodoros</span>
+                </label>
+            </div>
+
+            <!-- Sound Settings -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                    <span style="color: black; font-weight: 600; font-size: 0.875rem;">Notification Sound</span>
+                    <button id="sound-toggle" style="padding: 0.5rem; border-radius: 9999px; background: rgba(0, 0, 0, 0.1);">
+                        <i id="sound-on-icon" data-lucide="volume-2" style="width: 20px; height: 20px; color: black;"></i>
+                        <i id="sound-off-icon" data-lucide="volume-x" style="width: 20px; height: 20px; color: rgba(0, 0, 0, 0.4); display: none;"></i>
+                    </button>
+                </label>
+                <input type="range" id="sound-volume" min="0" max="1" step="0.1" value="0.5">
+            </div>
+
+            <!-- Font Selection -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: black; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.875rem;">Timer Font</label>
+                <div class="grid grid-cols-2 gap-3" id="font-selector"></div>
+            </div>
+
+            <!-- Background Selection -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: black; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.875rem;">Background Image</label>
+                <div class="grid grid-cols-3 gap-3" id="bg-selector" style="margin-bottom: 0.75rem;"></div>
+                <div class="flex gap-2">
+                    <input type="text" id="custom-bg-url" placeholder="Or paste image URL..." style="flex: 1;">
+                    <button id="upload-bg-btn" class="btn-icon" style="padding: 0.75rem; background: rgba(0, 0, 0, 0.1); border-radius: 0.75rem; border: 1px solid #d1d5db;">
+                        <i data-lucide="upload" style="width: 20px; height: 20px; color: black;"></i>
+                    </button>
+                    <input type="file" id="bg-upload-input" accept="image/*" style="display: none;">
+                </div>
+            </div>
+
+            <!-- Task Management -->
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; color: black; font-weight: 600; margin-bottom: 0.75rem; font-size: 0.875rem;">Tasks</label>
+                <div class="flex gap-2" style="margin-bottom: 0.75rem;">
+                    <input type="text" id="new-task-input" placeholder="Add a task..." style="flex: 1;">
+                    <button id="add-task-btn" style="padding: 0.75rem 1rem; background: black; color: white; border-radius: 0.75rem; font-weight: 600;">
+                        <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
+                    </button>
+                </div>
+                <div id="tasks-list" style="max-height: 12rem; overflow-y: auto;"></div>
+            </div>
+
+            <button id="save-settings-btn" style="width: 100%; background: black; color: white; padding: 1rem; border-radius: 0.75rem; font-weight: 600; font-size: 1rem;">
+                Save Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center backdrop fade-in" style="padding: 1rem;">
+        <div class="modal glass-strong" style="max-width: 40rem;">
+            <div class="flex justify-between items-center" style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 700; color: black;">Focus Stats</h2>
+                <button id="close-stats" style="padding: 0.5rem; border-radius: 9999px;">
+                    <i data-lucide="x" style="width: 24px; height: 24px; color: black;"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4" style="margin-bottom: 1.5rem;">
+                <div class="stat-card">
+                    <div style="color: rgba(0, 0, 0, 0.6); font-size: 0.875rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
+                        Total Focus Time
+                    </div>
+                    <div style="font-size: 2.25rem; font-weight: 700; color: black;">
+                        <span id="total-hours">0</span>h <span id="total-minutes">0</span>m
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div style="color: rgba(0, 0, 0, 0.6); font-size: 0.875rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="target" style="width: 16px; height: 16px;"></i>
+                        Sessions Completed
+                    </div>
+                    <div style="font-size: 2.25rem; font-weight: 700; color: black;" id="total-sessions">0</div>
+                </div>
+                <div class="stat-card">
+                    <div style="color: rgba(0, 0, 0, 0.6); font-size: 0.875rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i>
+                        Average Session
+                    </div>
+                    <div style="font-size: 2.25rem; font-weight: 700; color: black;">
+                        <span id="average-minutes">0</span> <span style="font-size: 1.25rem;">min</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div style="color: rgba(0, 0, 0, 0.6); font-size: 0.875rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                        Today's Focus
+                    </div>
+                    <div style="font-size: 2.25rem; font-weight: 700; color: black;">
+                        <span id="today-minutes">0</span> <span style="font-size: 1.25rem;">min</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekly Visualization -->
+            <div class="stat-card" style="margin-bottom: 1.5rem;">
+                <h3 style="color: black; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+                    This Week
+                </h3>
+                <div id="week-chart" class="flex justify-between gap-2"></div>
+            </div>
+
+            <!-- Completed Tasks -->
+            <div id="completed-tasks-section" class="hidden stat-card">
+                <h3 style="color: black; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="check" style="width: 18px; height: 18px;"></i>
+                    Completed Tasks (<span id="completed-count">0</span>)
+                </h3>
+                <div id="completed-tasks-list" style="max-height: 12rem; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio Element -->
+    <audio id="notification-sound" src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZizcIG2m98OScTgwOUKvo77RnHQU2j9bxy3osBSF1xe/glEILD1yw6u2nVRULRp/h8Lx0IwUqgs/z2YwzCBpqve/jm0wPD1Ct6+63aB8GMpHX88t5KwUndcbw3I9ACw9csuvssFYVDUaf4fG9dCQFKoLP89mNMwgaaz7v4ppKDw9QrevvuGgfBjKQ1/PLeSsFJ3XG8NyOQQwOW7Hs6rBVFQ5FnuHxvnQkBSqCz/PZjTMIGms+7+OaShAPUKzr8LhoHwYykNfzy3krBSd1xvDcjkEMDlux7OqwVRUORZ7h8r50JAUqgs/z2Y0zCBprPu/jmkoQD1Cs6/C4aB8GMpDX88t5KwUndcbw3I5BDA5bsezqsFUVDkWe4fK+dCQFKoLP89mNMwgaaz7v45pKEA9QrOvwuGgfBjKQ1/PLeSsFJ3XG8NyOQQwOW7Hs6rBVFQ5FnuHyvnQkBSqCz/PZjTMIGms+7+OaShAPUKzr8LhoHwYykNfzy3krBSd1xvDcjkEMDlux7OqwVRUORZ7h8r50JAUqgs/z2Y0zCBprPu/jmkoQD1Cs6/C4aB8GMpDX88t5KwUndcbw3I5BDA5bsezqsFUVDkWe4fK+dCQFKoLP89mNMwgaaz7v45pKEA9QrOvwuGgfBjKQ1/PLeSsFJ3XG8NyOQQwOW7Hs6rBVFQ5FnuHyvnQkBSqCz/PZjTMIGms+7+OaShAPUKzr8LhoHwYykNfzy3krBSd1xvDcjkEMDlux7OqwVRUORZ7h8r50JAUqgs/z2Y0zCBprPu/jmkoQD1Cs6/C4aB8GMpDX88t5KwUndcbw3I5BDA5bsezqsFUVDkWe4fK+dCQFKoLP89mNMwgaaz7v45pKEA9QrOvwuGgfBjKQ1/PLeSsFJ3XG8NyOQQwOW7Hs6rBVFQ5FnuHyvnQkBSqCz/PZjTMIGms+7+OaShAPUKzr8LhoHwYykNfzy3krBSd1xvDcjkEMDlux7OqwVRUO"></audio>
+
+    <script>
+        // Constants
+        const FONTS = [
+            { name: 'Urbanist', class: 'font-urbanist' },
+            { name: 'Inter', class: 'font-inter' },
+            { name: 'Roboto Mono', class: 'font-roboto-mono' },
+            { name: 'Orbitron', class: 'font-orbitron' },
+            { name: 'Space Mono', class: 'font-space-mono' },
+            { name: 'JetBrains Mono', class: 'font-jetbrains' }
+        ];
+
+        const PRESET_BACKGROUNDS = [
+            'https://images.pexels.com/photos/16339069/pexels-photo-16339069.jpeg',
+            'https://images.pexels.com/photos/4245826/pexels-photo-4245826.jpeg',
+            'https://images.pexels.com/photos/1103970/pexels-photo-1103970.jpeg',
+            'https://images.pexels.com/photos/3738673/pexels-photo-3738673.jpeg',
+            'https://images.pexels.com/photos/1089438/pexels-photo-1089438.jpeg',
+            'https://images.pexels.com/photos/1629236/pexels-photo-1629236.jpeg'
+        ];
+
+        // State
+        let state = {
+            timerDuration: 25,
+            breakDuration: 5,
+            longBreakDuration: 15,
+            sessionsUntilLongBreak: 4,
+            selectedFont: 'font-urbanist',
+            backgroundImage: PRESET_BACKGROUNDS[0],
+            autoStartBreaks: false,
+            autoStartPomodoros: false,
+            soundEnabled: true,
+            soundVolume: 0.5,
+            tasks: [],
+            timeLeft: 25 * 60,
+            isRunning: false,
+            isBreak: false,
+            sessionStartTime: null,
+            completedSessions: 0,
+            currentSessionMinutes: 0,
+            currentTask: null,
+            focusMode: false,
+            sessions: [],
+            intervalId: null,
+            trackingIntervalId: null
+        };
+
+        // Load state from localStorage
+        function loadState() {
+            const saved = localStorage.getItem('pomoTimer');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                state = { ...state, ...parsed, 
+                    isRunning: false, 
+                    sessionStartTime: null,
+                    intervalId: null,
+                    trackingIntervalId: null
+                };
+            }
+            updateDisplay();
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            const toSave = { ...state };
+            delete toSave.intervalId;
+            delete toSave.trackingIntervalId;
+            delete toSave.isRunning;
+            delete toSave.sessionStartTime;
+            localStorage.setItem('pomoTimer', JSON.stringify(toSave));
+        }
+
+        // Initialize Lucide icons
+        function initIcons() {
+            lucide.createIcons();
+        }
+
+        // Format time
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('timer-display').textContent = formatTime(state.timeLeft);
+            document.getElementById('timer-display').className = state.selectedFont;
+            
+            // Update label
+            const label = state.isBreak 
+                ? (state.completedSessions % state.sessionsUntilLongBreak === 0 && state.completedSessions > 0 ? 'Long Break' : 'Break Time')
+                : 'Focus Time';
+            document.getElementById('timer-label').textContent = label;
+            
+            // Update progress circle
+            const totalDuration = state.isBreak ? state.breakDuration * 60 : state.timerDuration * 60;
+            const progress = ((totalDuration - state.timeLeft) / totalDuration) * 100;
+            const circumference = 2 * Math.PI * 45;
+            const offset = circumference * (1 - progress / 100);
+            document.getElementById('progress-circle').style.strokeDashoffset = offset;
+            
+            // Update session counter
+            if (state.isRunning && !state.isBreak && state.currentSessionMinutes > 0) {
+                document.getElementById('session-counter').classList.remove('hidden');
+                document.getElementById('session-minutes').textContent = state.currentSessionMinutes;
+            } else {
+                document.getElementById('session-counter').classList.add('hidden');
+            }
+            
+            // Update session dots
+            updateSessionDots();
+            
+            // Update current task display
+            if (state.currentTask) {
+                document.getElementById('current-task-display').classList.remove('hidden');
+                document.getElementById('current-task-text').textContent = state.currentTask.text;
+            } else {
+                document.getElementById('current-task-display').classList.add('hidden');
+            }
+            
+            // Update active tasks widget
+            updateActiveTasksWidget();
+            
+            // Update background
+            const bgStyle = `linear-gradient(rgba(249, 214, 232, 0.7), rgba(216, 214, 249, 0.7)), url('${state.backgroundImage}')`;
+            document.getElementById('background').style.backgroundImage = bgStyle;
+            
+            // Update focus mode
+            if (state.focusMode) {
+                document.getElementById('top-bar').classList.add('hidden');
+                document.getElementById('keyboard-hints').classList.add('hidden');
+                document.getElementById('active-tasks-widget').classList.add('hidden');
+                document.getElementById('session-dots').classList.add('hidden');
+                document.getElementById('current-task-display').classList.add('hidden');
+                document.getElementById('exit-focus-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('top-bar').classList.remove('hidden');
+                document.getElementById('keyboard-hints').classList.remove('hidden');
+                document.getElementById('session-dots').classList.remove('hidden');
+                document.getElementById('exit-focus-btn').classList.add('hidden');
+            }
+        }
+
+        // Update session dots
+        function updateSessionDots() {
+            const container = document.getElementById('session-dots');
+            container.innerHTML = '';
+            for (let i = 0; i < state.sessionsUntilLongBreak; i++) {
+                const dot = document.createElement('div');
+                dot.className = `session-dot ${i < state.completedSessions % state.sessionsUntilLongBreak ? 'active' : 'inactive'}`;
+                container.appendChild(dot);
+            }
+        }
+
+        // Update active tasks widget
+        function updateActiveTasksWidget() {
+            const activeTasks = state.tasks.filter(t => !t.completed).slice(0, 3);
+            if (activeTasks.length > 0 && !state.focusMode) {
+                document.getElementById('active-tasks-widget').classList.remove('hidden');
+                const list = document.getElementById('active-tasks-list');
+                list.innerHTML = '';
+                activeTasks.forEach(task => {
+                    const btn = document.createElement('button');
+                    btn.className = `task-item ${state.currentTask?.id === task.id ? 'active' : ''}`;
+                    btn.style.cssText = 'width: 100%; text-align: left; margin-bottom: 0.5rem; font-size: 0.875rem;';
+                    btn.textContent = task.text;
+                    btn.onclick = () => {
+                        state.currentTask = task;
+                        updateDisplay();
+                        saveState();
+                    };
+                    list.appendChild(btn);
+                });
+            } else {
+                document.getElementById('active-tasks-widget').classList.add('hidden');
+            }
+        }
+
+        // Start/Pause timer
+        function toggleTimer() {
+            state.isRunning = !state.isRunning;
+            
+            if (state.isRunning) {
+                if (!state.isBreak && !state.sessionStartTime) {
+                    state.sessionStartTime = Date.now();
+                    requestNotificationPermission();
+                }
+                
+                // Start countdown
+                state.intervalId = setInterval(() => {
+                    state.timeLeft--;
+                    if (state.timeLeft <= 0) {
+                        completeTimer();
+                    }
+                    updateDisplay();
+                }, 1000);
+                
+                // Start live tracking
+                if (!state.isBreak) {
+                    state.trackingIntervalId = setInterval(() => {
+                        state.currentSessionMinutes = Math.floor((Date.now() - state.sessionStartTime) / 60000);
+                        updateDisplay();
+                    }, 1000);
+                }
+                
+                document.getElementById('play-icon').style.display = 'none';
+                document.getElementById('pause-icon').style.display = 'block';
+                document.getElementById('start-pause-text').textContent = 'Pause';
+            } else {
+                clearInterval(state.intervalId);
+                clearInterval(state.trackingIntervalId);
+                document.getElementById('play-icon').style.display = 'block';
+                document.getElementById('pause-icon').style.display = 'none';
+                document.getElementById('start-pause-text').textContent = 'Start';
+            }
+            
+            saveState();
+        }
+
+        // Reset timer
+        function resetTimer() {
+            state.isRunning = false;
+            state.isBreak = false;
+            state.timeLeft = state.timerDuration * 60;
+            state.sessionStartTime = null;
+            state.currentSessionMinutes = 0;
+            
+            clearInterval(state.intervalId);
+            clearInterval(state.trackingIntervalId);
+            
+            document.getElementById('play-icon').style.display = 'block';
+            document.getElementById('pause-icon').style.display = 'none';
+            document.getElementById('start-pause-text').textContent = 'Start';
+            
+            updateDisplay();
+            saveState();
+        }
+
+        // Complete timer
+        function completeTimer() {
+            state.isRunning = false;
+            clearInterval(state.intervalId);
+            clearInterval(state.trackingIntervalId);
+            
+            playSound();
+            
+            // Log session
+            if (!state.isBreak && state.sessionStartTime) {
+                const minutesWorked = Math.floor((Date.now() - state.sessionStartTime) / 60000);
+                logSession(minutesWorked, state.currentTask);
+                state.completedSessions++;
+                
+                // Mark task complete
+                if (state.currentTask) {
+                    state.tasks = state.tasks.map(t => 
+                        t.id === state.currentTask.id ? { ...t, completed: true } : t
+                    );
+                    state.currentTask = null;
+                }
+            }
+            
+            // Switch mode
+            const isLongBreak = state.completedSessions > 0 && 
+                               state.completedSessions % state.sessionsUntilLongBreak === 0;
+            const nextIsBreak = !state.isBreak;
+            state.isBreak = nextIsBreak;
+            
+            if (nextIsBreak) {
+                const breakTime = isLongBreak ? state.longBreakDuration : state.breakDuration;
+                state.timeLeft = breakTime * 60;
+                if (state.autoStartBreaks) {
+                    setTimeout(() => {
+                        state.isRunning = true;
+                        toggleTimer();
+                    }, 1000);
+                }
+            } else {
+                state.timeLeft = state.timerDuration * 60;
+                if (state.autoStartPomodoros) {
+                    setTimeout(() => {
+                        state.isRunning = true;
+                        toggleTimer();
+                    }, 1000);
+                }
+            }
+            
+            state.sessionStartTime = null;
+            state.currentSessionMinutes = 0;
+            
+            // Notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(
+                    nextIsBreak ? 'Time for a break!' : "Break's over!",
+                    {
+                        body: nextIsBreak 
+                            ? `Take a ${isLongBreak ? 'long ' : ''}${isLongBreak ? state.longBreakDuration : state.breakDuration} minute break`
+                            : "Let's get back to work!",
+                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="%23ff6b6b"/></svg>'
+                    }
+                );
+            }
+            
+            updateDisplay();
+            saveState();
+        }
+
+        // Play sound
+        function playSound() {
+            if (state.soundEnabled) {
+                const audio = document.getElementById('notification-sound');
+                audio.volume = state.soundVolume;
+                audio.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+
+        // Request notification permission
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        // Log session
+        function logSession(duration, task) {
+            const session = {
+                duration,
+                task: task?.text || null,
+                completedAt: new Date().toISOString(),
+                date: new Date().toISOString().split('T')[0]
+            };
+            state.sessions.push(session);
+            saveState();
+        }
+
+        // Calculate stats
+        function calculateStats() {
+            const totalMinutes = state.sessions.reduce((sum, s) => sum + s.duration, 0);
+            const totalSessions = state.sessions.length;
+            const averageMinutes = totalSessions > 0 ? Math.round(totalMinutes / totalSessions) : 0;
+            
+            const today = new Date().toISOString().split('T')[0];
+            const todayMinutes = state.sessions
+                .filter(s => s.date === today)
+                .reduce((sum, s) => sum + s.duration, 0);
+            
+            // Week data
+            const weekData = Array(7).fill(0);
+            const dayOfWeek = new Date().getDay();
+            state.sessions.forEach(session => {
+                const sessionDate = new Date(session.date);
+                const daysAgo = Math.floor((Date.now() - sessionDate.getTime()) / (1000 * 60 * 60 * 24));
+                if (daysAgo < 7) {
+                    const dayIndex = (dayOfWeek - daysAgo + 7) % 7;
+                    weekData[dayIndex] += session.duration;
+                }
+            });
+            
+            return {
+                totalMinutes,
+                totalHours: Math.floor(totalMinutes / 60),
+                totalMinutesRemainder: totalMinutes % 60,
+                totalSessions,
+                averageMinutes,
+                todayMinutes,
+                weekData
+            };
+        }
+
+        // Show stats
+        function showStats() {
+            const stats = calculateStats();
+            
+            document.getElementById('total-hours').textContent = stats.totalHours;
+            document.getElementById('total-minutes').textContent = stats.totalMinutesRemainder;
+            document.getElementById('total-sessions').textContent = stats.totalSessions;
+            document.getElementById('average-minutes').textContent = stats.averageMinutes;
+            document.getElementById('today-minutes').textContent = stats.todayMinutes;
+            
+            // Week chart
+            const weekChart = document.getElementById('week-chart');
+            weekChart.innerHTML = '';
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const maxMinutes = Math.max(...stats.weekData, 1);
+            
+            stats.weekData.forEach((minutes, i) => {
+                const dayDiv = document.createElement('div');
+                dayDiv.style.cssText = 'flex: 1; text-align: center;';
+                
+                const barHeight = (minutes / maxMinutes) * 80;
+                const bar = document.createElement('div');
+                bar.style.cssText = `height: ${barHeight}px; background: rgba(0, 0, 0, ${minutes > 0 ? 0.3 : 0.1}); border-radius: 0.5rem; margin-bottom: 0.5rem;`;
+                
+                const label = document.createElement('div');
+                label.style.cssText = 'font-size: 0.75rem; color: rgba(0, 0, 0, 0.6);';
+                label.textContent = days[i];
+                
+                dayDiv.appendChild(bar);
+                dayDiv.appendChild(label);
+                weekChart.appendChild(dayDiv);
+            });
+            
+            // Completed tasks
+            const completedTasks = state.tasks.filter(t => t.completed);
+            if (completedTasks.length > 0) {
+                document.getElementById('completed-tasks-section').classList.remove('hidden');
+                document.getElementById('completed-count').textContent = completedTasks.length;
+                
+                const list = document.getElementById('completed-tasks-list');
+                list.innerHTML = '';
+                completedTasks.forEach(task => {
+                    const div = document.createElement('div');
+                    div.style.cssText = 'display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: rgba(0, 0, 0, 0.6); margin-bottom: 0.5rem;';
+                    div.innerHTML = `<i data-lucide="check" style="width: 14px; height: 14px;"></i><span style="text-decoration: line-through;">${task.text}</span>`;
+                    list.appendChild(div);
+                });
+                initIcons();
+            } else {
+                document.getElementById('completed-tasks-section').classList.add('hidden');
+            }
+            
+            document.getElementById('stats-modal').classList.remove('hidden');
+            initIcons();
+        }
+
+        // Show settings
+        function showSettings() {
+            document.getElementById('timer-duration').value = state.timerDuration;
+            document.getElementById('break-duration').value = state.breakDuration;
+            document.getElementById('long-break-duration').value = state.longBreakDuration;
+            document.getElementById('sessions-until-long-break').value = state.sessionsUntilLongBreak;
+            document.getElementById('auto-start-breaks').checked = state.autoStartBreaks;
+            document.getElementById('auto-start-pomodoros').checked = state.autoStartPomodoros;
+            document.getElementById('custom-bg-url').value = state.backgroundImage;
+            document.getElementById('sound-volume').value = state.soundVolume;
+            
+            updateSoundToggle();
+            renderFontSelector();
+            renderBgSelector();
+            renderTasksList();
+            
+            document.getElementById('settings-modal').classList.remove('hidden');
+            initIcons();
+        }
+
+        // Update sound toggle
+        function updateSoundToggle() {
+            if (state.soundEnabled) {
+                document.getElementById('sound-on-icon').style.display = 'block';
+                document.getElementById('sound-off-icon').style.display = 'none';
+            } else {
+                document.getElementById('sound-on-icon').style.display = 'none';
+                document.getElementById('sound-off-icon').style.display = 'block';
+            }
+        }
+
+        // Render font selector
+        function renderFontSelector() {
+            const container = document.getElementById('font-selector');
+            container.innerHTML = '';
+            
+            FONTS.forEach(font => {
+                const btn = document.createElement('button');
+                btn.className = `font-selector ${state.selectedFont === font.class ? 'selected' : ''}`;
+                btn.innerHTML = `
+                    <span class="${font.class}" style="font-size: 1.5rem; font-weight: 700; color: black;">25:00</span>
+                    <div style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin-top: 0.25rem;">${font.name}</div>
+                `;
+                btn.onclick = () => {
+                    state.selectedFont = font.class;
+                    renderFontSelector();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // Render background selector
+        function renderBgSelector() {
+            const container = document.getElementById('bg-selector');
+            container.innerHTML = '';
+            
+            PRESET_BACKGROUNDS.forEach((bg, i) => {
+                const btn = document.createElement('button');
+                btn.className = `bg-preset ${state.backgroundImage === bg ? 'selected' : ''}`;
+                btn.innerHTML = `<img src="${bg}" alt="Background ${i + 1}">`;
+                btn.onclick = () => {
+                    state.backgroundImage = bg;
+                    document.getElementById('custom-bg-url').value = bg;
+                    renderBgSelector();
+                    updateDisplay();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // Render tasks list
+        function renderTasksList() {
+            const list = document.getElementById('tasks-list');
+            list.innerHTML = '';
+            
+            if (state.tasks.length === 0) {
+                list.innerHTML = '<div style="color: rgba(0, 0, 0, 0.4); text-align: center; padding: 1rem; font-size: 0.875rem;">No tasks yet. Add one above!</div>';
+                return;
+            }
+            
+            state.tasks.forEach(task => {
+                const div = document.createElement('div');
+                div.className = 'task-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = task.completed;
+                checkbox.onchange = () => {
+                    task.completed = !task.completed;
+                    renderTasksList();
+                    saveState();
+                };
+                
+                const text = document.createElement('span');
+                text.style.cssText = `flex: 1; font-size: 0.875rem; color: ${task.completed ? 'rgba(0, 0, 0, 0.4)' : 'black'}; ${task.completed ? 'text-decoration: line-through;' : ''}`;
+                text.textContent = task.text;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '<i data-lucide="trash-2" style="width: 16px; height: 16px; color: rgba(0, 0, 0, 0.6);"></i>';
+                deleteBtn.style.cssText = 'padding: 0.25rem; border-radius: 0.25rem; transition: background 0.2s;';
+                deleteBtn.onmouseover = () => deleteBtn.style.background = 'rgba(0, 0, 0, 0.1)';
+                deleteBtn.onmouseout = () => deleteBtn.style.background = 'transparent';
+                deleteBtn.onclick = () => {
+                    state.tasks = state.tasks.filter(t => t.id !== task.id);
+                    if (state.currentTask?.id === task.id) {
+                        state.currentTask = null;
+                    }
+                    renderTasksList();
+                    saveState();
+                };
+                
+                div.appendChild(checkbox);
+                div.appendChild(text);
+                div.appendChild(deleteBtn);
+                list.appendChild(div);
+            });
+            
+            initIcons();
+        }
+
+        // Save settings
+        function saveSettings() {
+            state.timerDuration = parseInt(document.getElementById('timer-duration').value) || 25;
+            state.breakDuration = parseInt(document.getElementById('break-duration').value) || 5;
+            state.longBreakDuration = parseInt(document.getElementById('long-break-duration').value) || 15;
+            state.sessionsUntilLongBreak = parseInt(document.getElementById('sessions-until-long-break').value) || 4;
+            state.autoStartBreaks = document.getElementById('auto-start-breaks').checked;
+            state.autoStartPomodoros = document.getElementById('auto-start-pomodoros').checked;
+            state.soundVolume = parseFloat(document.getElementById('sound-volume').value);
+            
+            const customBg = document.getElementById('custom-bg-url').value;
+            if (customBg) {
+                state.backgroundImage = customBg;
+            }
+            
+            state.timeLeft = state.timerDuration * 60;
+            state.isBreak = false;
+            state.isRunning = false;
+            
+            document.getElementById('settings-modal').classList.add('hidden');
+            updateDisplay();
+            saveState();
+        }
+
+        // Add task
+        function addTask() {
+            const input = document.getElementById('new-task-input');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            const task = {
+                id: Date.now(),
+                text,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+            
+            state.tasks.push(task);
+            input.value = '';
+            renderTasksList();
+            saveState();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleTimer();
+            } else if (e.key === 'r' || e.key === 'R') {
+                e.preventDefault();
+                resetTimer();
+            } else if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                state.focusMode = !state.focusMode;
+                updateDisplay();
+                saveState();
+            }
+        });
+
+        // Event listeners
+        document.getElementById('start-pause-btn').onclick = toggleTimer;
+        document.getElementById('reset-btn').onclick = resetTimer;
+        document.getElementById('stats-btn').onclick = showStats;
+        document.getElementById('settings-btn').onclick = showSettings;
+        document.getElementById('focus-mode-btn').onclick = () => {
+            state.focusMode = true;
+            updateDisplay();
+            saveState();
+        };
+        document.getElementById('exit-focus-btn').onclick = () => {
+            state.focusMode = false;
+            updateDisplay();
+            saveState();
+        };
+        document.getElementById('close-stats').onclick = () => {
+            document.getElementById('stats-modal').classList.add('hidden');
+        };
+        document.getElementById('close-settings').onclick = () => {
+            document.getElementById('settings-modal').classList.add('hidden');
+        };
+        document.getElementById('save-settings-btn').onclick = saveSettings;
+        document.getElementById('add-task-btn').onclick = addTask;
+        document.getElementById('new-task-input').onkeypress = (e) => {
+            if (e.key === 'Enter') addTask();
+        };
+        document.getElementById('sound-toggle').onclick = () => {
+            state.soundEnabled = !state.soundEnabled;
+            updateSoundToggle();
+            saveState();
+        };
+        document.getElementById('custom-bg-url').oninput = (e) => {
+            state.backgroundImage = e.target.value;
+            renderBgSelector();
+            updateDisplay();
+        };
+        document.getElementById('upload-bg-btn').onclick = () => {
+            document.getElementById('bg-upload-input').click();
+        };
+        document.getElementById('bg-upload-input').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                state.backgroundImage = e.target.result;
+                document.getElementById('custom-bg-url').value = e.target.result;
+                renderBgSelector();
+                updateDisplay();
+                saveState();
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // Close modals on backdrop click
+        document.getElementById('settings-modal').onclick = (e) => {
+            if (e.target.id === 'settings-modal') {
+                document.getElementById('settings-modal').classList.add('hidden');
+            }
+        };
+        document.getElementById('stats-modal').onclick = (e) => {
+            if (e.target.id === 'stats-modal') {
+                document.getElementById('stats-modal').classList.add('hidden');
+            }
+        };
+
+        // Initialize
+        loadState();
+        initIcons();
+        
+        // Update page title based on timer
+        setInterval(() => {
+            if (state.isRunning) {
+                document.title = `${formatTime(state.timeLeft)} - ${state.isBreak ? 'Break' : 'Focus'}`;
+            } else {
+                document.title = 'Focus Timer - Pomodoro Tracker';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
